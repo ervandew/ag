@@ -65,12 +65,22 @@ function! s:Ag(args, relative) " {{{
   for arg in arglist
     if quoted != ''
       let args[-1] .= ' ' . arg
-      if arg =~ quoted . '$'
+      " closing quote while in 'quoted' state, strip it off if not escaped
+      if arg =~ quoted . '$' && arg[len(arg) - 2] != '\'
         let quoted = ''
+        let args[-1] = args[-1][:-2]
       endif
     else
       let quoted = arg =~ '^[''"]' ? arg[0] : ''
-      call add(args, arg)
+      " fully quoted
+      if arg =~ quoted . '$'
+        let quoted = ''
+        call add(args, arg)
+
+      " starting quote only, assuming quoted because of spaces
+      else
+        call add(args, arg[1:])
+      endif
     endif
   endfor
 
@@ -99,8 +109,7 @@ function! s:Ag(args, relative) " {{{
     endif
   endtry
 
-  " ack returns 1 on no results found, so errors are greater than that.
-  if v:shell_error > 1
+  if v:shell_error
     let error = system(cmd)
     call s:Echo(error, 'Error')
   elseif len(getqflist()) == 0
@@ -108,8 +117,7 @@ function! s:Ag(args, relative) " {{{
   endif
 endfunction " }}}
 
-" s:Echo(message, hightlight) {{{
-function s:Echo(message, highlight)
+function! s:Echo(message, highlight) " {{{
   exec "echohl " . a:highlight
   redraw
   for line in split(a:message, '\n')
