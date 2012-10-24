@@ -84,7 +84,8 @@ function! s:Ag(args, relative) " {{{
     endif
   endfor
 
-  let cmd = 'ag --search-files --column ' . join(map(args, 'shellescape(v:val)'), ' ')
+  let cmd = 'ag --search-files --column ' .
+    \ join(map(copy(args), 'shellescape(v:val)'), ' ')
 
   if a:relative
     let cwd = getcwd()
@@ -93,6 +94,11 @@ function! s:Ag(args, relative) " {{{
   let saveerrorformat = &errorformat
   try
     silent! doautocmd QuickFixCmdPre grep
+    if index(args, '-g') != -1
+      set errorformat=%f,%-G%.%#
+    else
+      set errorformat=%f:%l:%c:%m,%-G%.%#
+    endif
     " As described here, if there is no tty (which is the case when call ag
     " via system), ag will default to searching stdin, so force it to search
     " files via the --search-files arg.
