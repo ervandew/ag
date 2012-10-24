@@ -43,7 +43,7 @@
 
 " Command Declarations {{{
 if !exists(":Ag")
-  command -nargs=+ Ag :call <SID>Ag(<q-args>, 0)
+  command -nargs=+ -complete=dir Ag :call <SID>Ag(<q-args>, 0)
 endif
 if !exists(":AgRelative")
   command -nargs=+ AgRelative :call <SID>Ag(<q-args>, 1)
