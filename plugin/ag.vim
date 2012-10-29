@@ -95,9 +95,9 @@ function! s:Ag(args, relative) " {{{
   try
     silent! doautocmd QuickFixCmdPre grep
     if index(args, '-g') != -1
-      set errorformat=%f,%-G%.%#
+      set errorformat=%-GERR:%.%#,%f,%-G%.%#
     else
-      set errorformat=%f:%l:%c:%m,%-G%.%#
+      set errorformat=%-GERR:%.%#,%f:%l:%c:%m,%-G%.%#
     endif
     " As described here, if there is no tty (which is the case when call ag
     " via system), ag will default to searching stdin, so force it to search
