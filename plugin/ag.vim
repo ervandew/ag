@@ -43,7 +43,7 @@
 
 " Command Declarations {{{
 if !exists(":Ag")
-  command -nargs=+ -complete=dir Ag :call <SID>Ag(<q-args>, 0)
+  command -nargs=+ -complete=customlist,<SID>Complete Ag :call <SID>Ag(<q-args>, 0)
 endif
 if !exists(":AgRelative")
   command -nargs=+ AgRelative :call <SID>Ag(<q-args>, 1)
@@ -130,6 +130,11 @@ function! s:Echo(message, highlight) " {{{
     echom line
   endfor
   echohl None
+endfunction " }}}
+
+function! s:Complete(argLead, cmdLine, cursorPos) " {{{
+  let results = glob(a:argLead . '*', 0, 1)
+  return map(filter(results, 'isdirectory(v:val)'), 'v:val . "/"')
 endfunction " }}}
 
 " vim:ft=vim:fdm=marker
