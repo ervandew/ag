@@ -271,6 +271,31 @@ function! s:Complete(argLead, cmdLine, cursorPos, ...) " {{{
   return glob(a:argLead . '*', 0, 1)
 endfunction " }}}
 
+" allow ag to be used with eclim's :LocateFile
+if !exists('g:EclimLocateUserScopes')
+  let g:EclimLocateUserScopes = ['ag']
+else
+  call add(g:EclimLocateUserScopes, 'ag')
+endif
+
+function LocateFile_ag(pattern) " {{{
+  if len(a:pattern) >= 5
+    let command = '`ag --search-files -g "' . a:pattern . '"`'
+    let results = split(eclim#util#Glob(command, 1), "\n")
+
+    if len(results) > 0
+      let tempfile = substitute(tempname(), '\', '/', 'g')
+      call writefile(results, tempfile)
+      try
+        return eclim#common#locate#LocateFileFromFileList(a:pattern, tempfile)
+      finally
+        call delete(tempfile)
+      endtry
+    endif
+  endif
+  return []
+endfunction " }}}
+
 let &cpo = s:save_cpo
 
 " vim:ft=vim:fdm=marker

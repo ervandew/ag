@@ -96,4 +96,20 @@ The `:Ag` command provides several features to make running `ag` easier:
 
       :Ag -G foo/.*/[^/]*\.py$ FooBar
 
+======
+Extras
+======
+
+ag.vim also registers itself as a backend for `eclim's`_ `:LocateFile`_
+functionality. You can even set ag as the default for non-eclim projects by
+adding the following to your vimrc:
+
+  ::
+
+    let g:EclimLocateFileNonProjectScope = 'ag'
+
+Note: requires eclim 2.2.5 or greater (or 1.7.13 or greater for Indigo users).
+
 .. _silver searcher (ag): https://github.com/ggreer/the_silver_searcher
+.. _eclim's: http://eclim.org
+.. _\:LocateFile: http://eclim.org/vim/core/locate.html
