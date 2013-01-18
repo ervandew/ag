@@ -7,7 +7,7 @@
 " }}}
 
 " License: {{{
-"   Copyright (c) 2012, Eric Van Dewoestine
+"   Copyright (c) 2012 - 2013, Eric Van Dewoestine
 "   All rights reserved.
 "
 "   Redistribution and use of this software in source and binary forms, with
@@ -213,12 +213,12 @@ function! s:SplitOptionsFromArgs(args) " {{{
   let args = []
   let prevarg = ''
   for arg in a:args
-    if prevarg =~ '-' && s:OptionHasArg(prevarg)
+    if prevarg =~ '^-' && s:OptionHasArg(prevarg)
       call add(options, arg)
       let prevarg = arg
       continue
     endif
-    if arg =~ '-'
+    if arg =~ '^-'
       call add(options, arg)
       let prevarg = arg
       continue
