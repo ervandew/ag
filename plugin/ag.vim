@@ -144,6 +144,8 @@ function! s:Ag(args, relative) " {{{
       call setqftitle('ag' . args)
     endif
     silent! doautocmd QuickFixCmdPost grep
+  catch /E325/
+    " vim handles this by prompting the user for how to proceed
   finally
     let &errorformat = saveerrorformat
     if a:relative
