@@ -1,4 +1,4 @@
-.. Copyright (c) 2012, Eric Van Dewoestine
+.. Copyright (c) 2012 - 2013, Eric Van Dewoestine
    All rights reserved.
 
    Redistribution and use of this software in source and binary forms, with
@@ -48,53 +48,53 @@ Usage
 
   :Ag [options] pattern [directory]
 
-The `:Ag` command provides several features to make running `ag` easier:
+The **:Ag** command provides several features to make running ag easier:
 
-* `:Ag` supports command completion of:
+* **:Ag** supports command completion of:
 
-  - **patterns from your search history:** You can hit `<tab>` when starting to
-    run `:Ag` and you can choose from a list of 10 of your most recent
-    searches. A common use case while editing code could be to hit `*` on a
+  - **patterns from your search history:** You can hit ``<tab>`` when starting to
+    run ``:Ag`` and you can choose from a list of 10 of your most recent
+    searches. A common use case while editing code could be to hit ``*`` on a
     function name to search for occurrences in the current file, then to run
     ``:Ag <tab>`` to search for the function across all files.
-  - **ag options:** If you type `-` and then hit `<tab>`, you can scroll
-    through all the ag.vim supported `ag` options:
+  - **ag options:** If you type ``-`` and then hit ``<tab>``, you can scroll
+    through all the ag.vim supported ag options.
   - **file/directory name to search in:** Once you've supplied a search
-    pattern, the next argument to `:Ag` is an optional directory or file to
-    search in and you can make use of `<tab>` completion to choose that file or
+    pattern, the next argument to ``:Ag`` is an optional directory or file to
+    search in and you can make use of ``<tab>`` completion to choose that file or
     directory.
 
   Note: I highly recommend turning on vim's wildmenu support to get the most
   out of vim's command completion:
 
-    ::
+  ::
 
-      set wildmenu
-      set wildmode=longest:full,full
+    set wildmenu
+    set wildmode=longest:full,full
 
 * Some vim based regex atoms in the supplied pattern will be converted to their
-  PCRE equivalent so that you can do something like hit `*` on a word in vim,
+  PCRE equivalent so that you can do something like hit ``*`` on a word in vim,
   then run ``:Ag <tab>`` or ``:Ag <c-r>/`` to search for that word with ag
   without having to convert the pattern yourself:
 
   - Word boundaries: ``\<Word\>`` will be converted to ``\bWord\b``
   - Non-greedy matches: ``foo.\{-}bar`` will be converted to ``foo.*?bar``
 
-* The directory argument supplied to `:Ag` supports simple glob patterns. To
+* The directory argument supplied to ``:Ag`` supports simple glob patterns. To
   simplify filtering of your search by file extension, you can pass a glob
-  pattern to `:Ag` and it will convert it to a file search regex for `ag`. For
-  example, to limit your search to only python files starting in some
-  directory, you could run:
+  pattern to ``:Ag`` and it will convert it to a file search regex for ag. For
+  example, to limit your search to only python files starting in some directory,
+  you could run:
 
-    ::
+  ::
 
-      :Ag FooBar foo/**/*.py
+    :Ag FooBar foo/**/*.py
 
   This will be converted to the equivalent of running:
 
-    ::
+  ::
 
-      :Ag -G foo/.*/[^/]*\.py$ FooBar
+    :Ag -G foo/.*/[^/]*\.py$ FooBar
 
 ======
 Extras
@@ -104,9 +104,9 @@ ag.vim also registers itself as a backend for `eclim's`_ `:LocateFile`_
 functionality. You can even set ag as the default for non-eclim projects by
 adding the following to your vimrc:
 
-  ::
+::
 
-    let g:EclimLocateFileNonProjectScope = 'ag'
+  let g:EclimLocateFileNonProjectScope = 'ag'
 
 Note: requires eclim 2.2.5 or greater (or 1.7.13 or greater for Indigo users).
 
