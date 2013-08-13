@@ -280,7 +280,7 @@ else
   call add(g:EclimLocateUserScopes, 'ag')
 endif
 
-function LocateFile_ag(pattern) " {{{
+function! LocateFile_ag(pattern) " {{{
   if len(a:pattern) >= 5
     let command = '`ag --search-files -g "' . a:pattern . '"`'
     let results = split(eclim#util#Glob(command, 1), "\n")
