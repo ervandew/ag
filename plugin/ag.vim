@@ -143,6 +143,10 @@ function! s:Ag(args, relative) " {{{
     if exists('*setqftitle')
       call setqftitle('ag' . args)
     endif
+    " open up the fold on the first result
+    if len(getqflist())
+      normal! zv
+    endif
     silent! doautocmd QuickFixCmdPost grep
   catch /E325/
     " vim handles this by prompting the user for how to proceed
