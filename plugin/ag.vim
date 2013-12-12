@@ -268,13 +268,23 @@ function! s:Complete(argLead, cmdLine, cursorPos, ...) " {{{
     return filter(results, 'v:val =~# "^\\M" . a:argLead')
   endif
 
-  " complete files/directories
+  " complete file relative files/directories
   if a:0 && a:1
-    let path = expand('%:h') . '/'
-    let results = glob(path . a:argLead . '*', 0, 1)
-    return map(results, 'substitute(v:val, "^" . path, "", "")')
+    let path = expand('%:h')
+    if path == ''
+      let path = getcwd()
+    endif
+    let path .= '/'
+    let results = glob(path . substitute(a:argLead, '^/', '', '') . '*', 0, 1)
+    let results = map(results, 'isdirectory(fnamemodify(v:val, ":p")) ? v:val . "/" : v:val')
+    let results = map(results, 'substitute(v:val, "^" . path, "", "")')
+
+  " complete absolute / cwd relative files/directories
+  else
+    let results = glob(a:argLead . '*', 0, 1)
+    let results = map(results, 'isdirectory(fnamemodify(v:val, ":p")) ? v:val . "/" : v:val')
   endif
-  return glob(a:argLead . '*', 0, 1)
+  return results
 endfunction " }}}
 
 " allow ag to be used with eclim's :LocateFile
