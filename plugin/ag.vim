@@ -124,6 +124,9 @@ function! s:Ag(args, relative) " {{{
     endif
   endif
 
+  " If there is no tty (which is the case when calling ag via system), ag will
+  " default to searching stdin, so force it to search files via the
+  " --search-files arg: https://github.com/ggreer/the_silver_searcher/issues/57
   let cmd = 'ag --search-files --column ' .
     \ join(map(copy(args), 'shellescape(v:val)'), ' ')
 
@@ -135,14 +138,17 @@ function! s:Ag(args, relative) " {{{
     else
       set errorformat=%-GERR:%.%#,%f:%l:%c:%m,%-G%.%#
     endif
-    " As described here, if there is no tty (which is the case when calling ag
-    " via system), ag will default to searching stdin, so force it to search
-    " files via the --search-files arg:
-    " https://github.com/ggreer/the_silver_searcher/issues/57
+
     cexpr system(cmd)
-    if exists('*setqftitle')
-      call setqftitle('ag' . args)
-    endif
+
+    " TODO: If/When Christian Brabandt's qf title patch is applied, then we
+    " can enable the below code accordingly to set a persistent quickfix
+    " title.
+    "if v:version > 70X || (v:version == 70X && haspatch("patchXYZ"))
+    "  let qftitle = 'ag ' . join(args)
+    "  call setqflist(getqflist(), 'r', qftitle)
+    "endif
+
     " open up the fold on the first result
     if len(getqflist())
       normal! zv
