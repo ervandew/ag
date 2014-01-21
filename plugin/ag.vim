@@ -7,7 +7,7 @@
 " }}}
 
 " License: {{{
-"   Copyright (c) 2012 - 2013, Eric Van Dewoestine
+"   Copyright (c) 2012 - 2014, Eric Van Dewoestine
 "   All rights reserved.
 "
 "   Redistribution and use of this software in source and binary forms, with
@@ -50,12 +50,12 @@ set cpo&vim
 
 " Command Declarations {{{
 if !exists(":Ag")
-  command -nargs=+ -complete=customlist,<SID>Complete
-    \ Ag :call <SID>Ag(<q-args>, 0)
+  command -bang -nargs=+ -complete=customlist,<SID>Complete
+    \ Ag :call <SID>Ag(<q-args>, 0, '<bang>')
 endif
 if !exists(":AgRelative")
-  command -nargs=+ -complete=customlist,<SID>CompleteRelative
-    \ AgRelative :call <SID>Ag(<q-args>, 1)
+  command -bang -nargs=+ -complete=customlist,<SID>CompleteRelative
+    \ AgRelative :call <SID>Ag(<q-args>, 1, '<bang>')
 endif
 " }}}
 
@@ -83,7 +83,7 @@ endif
     \ ]
 " }}}
 
-function! s:Ag(args, relative) " {{{
+function! s:Ag(args, relative, bang) " {{{
   if !executable('ag')
     call s:Echo("'ag' not found on your system path.", 'Error')
     return
@@ -149,9 +149,18 @@ function! s:Ag(args, relative) " {{{
     "  call setqflist(getqflist(), 'r', qftitle)
     "endif
 
-    " open up the fold on the first result
     if len(getqflist())
-      normal! zv
+      " open up the fold on the first result
+      if a:bang == ''
+        normal! zv
+
+      " if the user doesn't want to jump to the first result, then navigate back
+      " to where they were (cexpr! just ignores changes to the current file, so
+      " we need to use the jumplist) and open the quickfix window.
+      else
+        exec "normal! \<c-o>"
+        copen
+      endif
     endif
     silent! doautocmd QuickFixCmdPost grep
   catch /E325/
