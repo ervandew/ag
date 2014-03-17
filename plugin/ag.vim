@@ -186,6 +186,7 @@ function! s:ParseArgs(args) " {{{
   let rawargs = substitute(rawargs, '\\{-}', '*?', 'g')
   let arglist = split(rawargs, ' ')
   let quoted = ''
+  let escaped = 0
   let args = []
   for arg in arglist
     if quoted != ''
@@ -195,9 +196,13 @@ function! s:ParseArgs(args) " {{{
         let quoted = ''
         let args[-1] = args[-1][:-2]
       endif
+    elseif escaped
+      let args[-1] .= ' ' . arg
+      let escaped = arg =~ '\\$'
     else
+      let escaped = arg =~ '\\$'
       let quoted = arg =~ '^[''"]' ? arg[0] : ''
-      " fully quoted
+      " fully quoted or not quoted at all
       if arg =~ quoted . '$'
         let quoted = ''
         call add(args, arg)
