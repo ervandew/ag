@@ -282,7 +282,7 @@ function! s:Complete(argLead, cmdLine, cursorPos, ...) " {{{
       if hist == ''
         break
       endif
-      call add(results, hist)
+      call add(results, substitute(hist, '\([^\\]\)\s', '\1\\ ', 'g'))
       let i -= 1
     endwhile
     return filter(results, 'v:val =~# "^\\M" . a:argLead')
