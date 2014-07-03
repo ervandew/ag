@@ -54,11 +54,11 @@ let g:AgSmartCase = 0
 
 " Command Declarations {{{
 if exists(":Ag") != 2
-  command -bang -nargs=+ -complete=customlist,ag#Complete
+  command -bang -nargs=* -complete=customlist,ag#Complete
     \ Ag :call ag#Ag(<q-args>, 0, '<bang>')
 endif
 if exists(":AgRelative") != 2
-  command -bang -nargs=+ -complete=customlist,ag#CompleteRelative
+  command -bang -nargs=* -complete=customlist,ag#CompleteRelative
     \ AgRelative :call ag#Ag(<q-args>, 1, '<bang>')
 endif
 " }}}

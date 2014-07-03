@@ -73,7 +73,11 @@ function! ag#Ag(args, relative, bang) " {{{
     exec 'cd ' . expand('%:p:h')
   endif
 
-  let args = s:ParseArgs(a:args)
+  if empty(a:args)
+    let args = s:ParseArgs(expand("<cword>"))
+  else
+    let args = s:ParseArgs(a:args)
+  end
   " if pattern and dir supplied, see if dir is a glob pattern
   let [options, non_option_args] = s:SplitOptionsFromArgs(args)
   if len(non_option_args) == 2
