@@ -48,6 +48,10 @@ endif
 let s:save_cpo=&cpo
 set cpo&vim
 
+" Global Variables {{{
+let g:AgSmartCase = 0
+" }}}
+
 " Command Declarations {{{
 if !exists(":Ag")
   command -bang -nargs=+ -complete=customlist,ag#Complete

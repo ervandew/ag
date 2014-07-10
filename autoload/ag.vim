@@ -107,6 +107,7 @@ function! ag#Ag(args, relative, bang) " {{{
   " default to searching stdin, so force it to search files via the
   " --search-files arg: https://github.com/ggreer/the_silver_searcher/issues/57
   let cmd = 'ag --search-files --column ' .
+    \ (g:AgSmartCase ? '--smart-case ' : '') .
     \ join(map(copy(args), 'shellescape(v:val)'), ' ')
 
   let saveerrorformat = &errorformat

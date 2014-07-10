@@ -1,4 +1,4 @@
-.. Copyright (c) 2012 - 2013, Eric Van Dewoestine
+.. Copyright (c) 2012 - 2014, Eric Van Dewoestine
    All rights reserved.
 
    Redistribution and use of this software in source and binary forms, with
@@ -95,6 +95,13 @@ The **:Ag** command provides several features to make running ag easier:
   ::
 
     :Ag -G foo/.*/[^/]*\.py$ FooBar
+
+=============
+Configuration
+=============
+
+* **g:AgSmartCase** (default: 0) - When set to a non-0 value, **:Ag** will run
+  ``ag`` with the ``--smart-case`` option.
 
 ======
 Extras
