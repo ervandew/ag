@@ -72,8 +72,8 @@ endif
 
 function! LocateFile_ag(pattern) " {{{
   if len(a:pattern) >= 5
-    let command = '`ag --search-files -g "' . a:pattern . '"`'
-    let results = split(eclim#util#Glob(command, 1), "\n")
+    let command = 'ag --search-files -g "' . a:pattern . '"'
+    let results = split(system(command), "\n")
 
     if len(results) > 0
       let tempfile = substitute(tempname(), '\', '/', 'g')
