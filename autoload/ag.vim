@@ -133,6 +133,7 @@ function! ag#Ag(args, relative, bang) " {{{
       " open up the fold on the first result
       if a:bang == ''
         normal! zv
+        silent! doautocmd WinEnter
 
       " if the user doesn't want to jump to the first result, then navigate back
       " to where they were (cexpr! just ignores changes to the current file, so
