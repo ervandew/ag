@@ -119,6 +119,9 @@ function! ag#Ag(args, relative, bang) " {{{
       set errorformat=%-GERR:%.%#,%f:%l:%c:%m,%-G%.%#
     endif
 
+    if &verbose
+      echom "Ag: executing" cmd
+    endif
     cexpr system(cmd)
 
     " TODO: If/When Christian Brabandt's qf title patch is applied, then we
