@@ -157,9 +157,31 @@ function! ag#Ag(args, relative, bang) " {{{
   endtry
 
   if v:shell_error
+    " may be a bug in ag, but it is returning an error code on file name searches
+    " (-g <pattern>) when results are found
+    if index(args, '-g') != -1
+      let results = getqflist()
+      if len(results) && bufname(results[0].bufnr) !~ '^ag: '
+        return
+      endif
+      " our -g errorformat matches every line of ag's error message if there was
+      " a legitimate error, so jump back to the file the user was editing and
+      " clear the quickfix list
+      if a:bang == '' && len(results)
+        exec "normal! \<c-o>"
+      endif
+      call setqflist([], 'r')
+    endif
+
+    " note: an error code is return on no results as well.
     let error = system(cmd)
-    call s:Echo(error, 'Error')
-  elseif len(getqflist()) == 0
+    if error != ''
+      call s:Echo(error, 'Error')
+      return
+    endif
+  endif
+
+  if len(getqflist()) == 0
     call s:Echo('No results found: ' . cmd, 'WarningMsg')
   endif
 endfunction " }}}
