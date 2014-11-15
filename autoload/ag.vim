@@ -186,8 +186,12 @@ function! s:ParseArgs(args) " {{{
     else
       let escaped = arg =~ '\\$'
       let quoted = arg =~ '^[''"]' ? arg[0] : ''
+      " a lone quote, so must have been a quote with n spaces
+      if arg == quoted
+        call add(args, '')
+
       " fully quoted or not quoted at all
-      if arg =~ quoted . '$'
+      elseif arg =~ quoted . '$'
         let quoted = ''
         call add(args, arg)
 
