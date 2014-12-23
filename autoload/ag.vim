@@ -74,7 +74,7 @@ function! ag#Ag(args, relative, bang) " {{{
   endif
 
   if empty(a:args)
-    let args = s:ParseArgs(expand("<cword>"))
+    let args = s:ParseArgs("\\<" . expand("<cword>") . "\\>")
   else
     let args = s:ParseArgs(a:args)
   end
