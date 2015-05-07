@@ -135,6 +135,12 @@ function! ag#Ag(args, relative, bang) " {{{
     "  let qftitle = 'ag ' . join(args)
     "  call setqflist(getqflist(), 'r', qftitle)
     "endif
+    " Assume that the patch is applied for now:
+    try
+      let qftitle = 'ag ' . join(args)
+      call setqflist(getqflist(), 'r', qftitle)
+    catch /E118/
+    endtry
 
     if len(getqflist())
       " open up the fold on the first result
