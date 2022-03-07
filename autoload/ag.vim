@@ -1,7 +1,7 @@
 " Author: Eric Van Dewoestine
 
 " License: {{{
-"   Copyright (c) 2012 - 2014, Eric Van Dewoestine
+"   Copyright (c) 2012 - 2022, Eric Van Dewoestine
 "   All rights reserved.
 "
 "   Redistribution and use of this software in source and binary forms, with
@@ -127,14 +127,13 @@ function! ag#Ag(args, relative, bang) " {{{
       echom "Ag: executing" cmd
     endif
     cexpr system(cmd)
+    let qftitle = 'ag ' . join(args)
 
-    " TODO: If/When Christian Brabandt's qf title patch is applied, then we
-    " can enable the below code accordingly to set a persistent quickfix
-    " title.
-    "if v:version > 70X || (v:version == 70X && haspatch("patchXYZ"))
-    "  let qftitle = 'ag ' . join(args)
-    "  call setqflist(getqflist(), 'r', qftitle)
-    "endif
+    try
+      call setqflist([], 'a', {'title': qftitle})
+    catch
+      " don't let attempt to set the quickfix title break anything
+    endtry
 
     if len(getqflist())
       " open up the fold on the first result
