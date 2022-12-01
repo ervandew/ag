@@ -1,4 +1,4 @@
-.. Copyright (c) 2012 - 2014, Eric Van Dewoestine
+.. Copyright (c) 2012 - 2022, Eric Van Dewoestine
    All rights reserved.
 
    Redistribution and use of this software in source and binary forms, with
@@ -88,13 +88,23 @@ The **:Ag** command provides several features to make running ag easier:
 
   ::
 
-    :Ag FooBar foo/**/*.py
+    :Ag FooBar foo/*.py
 
-  This will be converted to the equivalent of running:
+  Which will search all .py files directly in the 'foo' directory.
+
+  To search .py files in all the nested sub-directories of 'foo' as well as
+  those .py files directly under 'foo' you can use:
 
   ::
 
-    :Ag -G foo/.*/[^/]*\.py$ FooBar
+    :Ag FooBar foo/***.py
+
+  If you want to search all the sub-directories but skip .py files directly
+  under 'foo' you can use:
+
+  ::
+
+    :Ag FooBar foo/**/*.py
 
 =============
 Configuration
