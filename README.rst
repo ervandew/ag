@@ -52,11 +52,11 @@ The **:Ag** command provides several features to make running ag easier:
 
 * **:Ag** supports command completion of:
 
-  - **patterns from your search history:** You can hit ``<tab>`` when starting to
-    run ``:Ag`` and you can choose from a list of 10 of your most recent
-    searches. A common use case while editing code could be to hit ``*`` on a
-    function name to search for occurrences in the current file, then to run
-    ``:Ag <tab>`` to search for the function across all files.
+  - **patterns from your vim search history:** You can hit ``<tab>`` when
+    starting to run ``:Ag`` and you can choose from a list of 10 of your most
+    recent vim searches. A common use case while editing code could be running
+    ``/something`` to search for occurrences in the current file, then running
+    ``:Ag <tab>`` to search for the pattern across all files.
   - **ag options:** If you type ``-`` and then hit ``<tab>``, you can scroll
     through all the ag.vim supported ag options.
   - **file/directory name to search in:** Once you've supplied a search
