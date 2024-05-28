@@ -1,4 +1,4 @@
-.. Copyright (c) 2012 - 2022, Eric Van Dewoestine
+.. Copyright (c) 2012 - 2024, Eric Van Dewoestine
    All rights reserved.
 
    Redistribution and use of this software in source and binary forms, with
@@ -46,7 +46,10 @@ Usage
 
 ::
 
-  :Ag [options] pattern [directory]
+  :Ag [options] [pattern] [directory]
+
+Note: When no arguments are supplied, the the word under the cursor is searched,
+honoring the case of that word.
 
 The **:Ag** command provides several features to make running ag easier:
 
@@ -106,27 +109,79 @@ The **:Ag** command provides several features to make running ag easier:
 
     :Ag FooBar foo/**/*.py
 
+* If you use ``:Ag -g`` with no other arguments, then it will attempt to extract
+  a file name from under the cursor and search for that and either:
+
+  - Open the file in the current window if there is only 1 result.
+
+      Note: If you supply a bang (``:Ag! -g``), then the result will be opened
+      in a new split window.
+
+  - Open the quickfix window if there are multiple results.
+
+  You can replace the built in vim mappings to go to a file by adding the
+  following to your .vimrc:
+
+  ::
+
+    nmap gf :Ag -g<cr>
+    nmap gF :Ag! -g<cr>
+
+The **:AgPrompt** command provides a prompt from which you can perform a fuzzy
+search on file names.
+
+  ::
+
+    :AgPrompt
+
+From the prompt you can start typing portions of a file name you are looking for
+and results will be populated in another window.
+
+The following keybindings are available from the prompt:
+
+  - <esc> - close the ag prompt + results
+  - <tab>, <down> - select the next file
+  - <s-tab>, <up> - select the previous file
+  - <cr> - open selected file w/ default action
+  - <c-e> - open with :edit
+  - <c-s> - open in a split window
+  - <c-t> - open in a new tab
+  - <c-h> - toggle help buffer
+
+Note: To use <c-s> in vim running in a terminal, you may need to add the
+following to your vimrc to prevent the terminal from suspending display updates:
+
+  ::
+
+    silent !stty -ixon
+
 =============
 Configuration
 =============
 
-* **g:AgSmartCase** (default: 0) - When set to a non-0 value, **:Ag** will run
-  ``ag`` with the ``--smart-case`` option.
+* **:Ag**
+
+  - **g:AgSmartCase** (default: 0) - When set to a non-0 value, **:Ag** will run
+    ``ag`` with the ``--smart-case`` option.
+
+* **:AgPrompt**
+
+  - **g:AgPromptDefaultAction** (default: 'edit') - The default command used to
+    open the selected file.
+  - **g:AgPromptCaseInsensitive** (default: 'lower') - Sets under what condition
+    will the search be case insensitive, one of:
+
+    - lower: when the pattern is all lower case
+    - never: never case insensitive
+    - always: aways case insensitive
 
 ======
 Extras
 ======
 
-ag.vim also registers itself as a backend for `eclim's`_ `:LocateFile`_
-functionality. You can even set ag as the default for non-eclim projects by
-adding the following to your vimrc:
-
-::
-
-  let g:EclimLocateFileNonProjectScope = 'ag'
-
-Note: requires eclim 2.2.5 or greater (or 1.7.13 or greater for Indigo users).
+**ag#search#FindFile(path, cmd)** - A globally available function that other
+scripts can use to find a file and open it with the supplied command. This can
+be useful for custom mappings that need to first translate a file name from a
+finally artifact to the source file (Eg. a .css file to the .scss source).
 
 .. _silver searcher (ag): https://github.com/ggreer/the_silver_searcher
-.. _eclim's: http://eclim.org
-.. _\:LocateFile: http://eclim.org/vim/core/locate.html

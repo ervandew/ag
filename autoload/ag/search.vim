@@ -1,7 +1,7 @@
 " Author: Eric Van Dewoestine
 
 " License: {{{
-"   Copyright (c) 2012 - 2022, Eric Van Dewoestine
+"   Copyright (c) 2012 - 2024, Eric Van Dewoestine
 "   All rights reserved.
 "
 "   Redistribution and use of this software in source and binary forms, with
@@ -62,7 +62,7 @@ set cpo&vim
     \ ]
 " }}}
 
-function! ag#Ag(args, relative, bang) " {{{
+function! ag#search#Ag(args, relative, bang) " {{{
   if !executable('ag')
     call s:Echo("'ag' not found on your system path.", 'Error')
     return
@@ -74,10 +74,26 @@ function! ag#Ag(args, relative, bang) " {{{
   endif
 
   if empty(a:args)
-    let args = s:ParseArgs("\\<" . expand("<cword>") . "\\>")
+    let cword = expand("<cword>")
+    if cword == ''
+      call s:Echo("No word under the cursor to search for.", 'Error')
+      return
+    endif
+    let args = s:ParseArgs("\\<" . cword . "\\>")
+    let args = ['-s'] + args
+  elseif a:args == '-g'
+    let line = getline(line('.'))
+    let uri = substitute(line,
+      \ "\\(.*[[:space:]\"',(\\[{><]\\|^\\)\\(.*\\%" .
+      \ col('.') . "c.\\{-}\\)\\([[:space:]\"',)\\]}<>].*\\|$\\)",
+      \ '\2', '')
+    let args = s:ParseArgs(a:args)
+    call add(args, uri)
   else
     let args = s:ParseArgs(a:args)
+    let args = [g:AgSmartCase ? '--smart-case' : '-s'] + args
   end
+
   " if pattern and dir supplied, see if dir is a glob pattern
   let [options, non_option_args] = s:SplitOptionsFromArgs(args)
   if len(non_option_args) == 2
@@ -92,7 +108,11 @@ function! ag#Ag(args, relative, bang) " {{{
     if filereadable(dir)
       let path = fnamemodify(dir, ':h')
       let file = fnamemodify(dir, ':t')
-      let args = options + ['-G', file, '--depth', '0'] + non_option_args[:-2] + [path]
+      let args =
+        \ options +
+        \ ['-G', file, '--depth', '0'] +
+        \ non_option_args[:-2] +
+        \ [path]
 
     " globs
     elseif dir =~ '\*'
@@ -107,37 +127,113 @@ function! ag#Ag(args, relative, bang) " {{{
     endif
   endif
 
-  " If there is no tty (which is the case when calling ag via system), ag will
-  " default to searching stdin, so force it to search files via the
-  " --search-files arg: https://github.com/ggreer/the_silver_searcher/issues/57
-  let cmd = 'ag --search-files --column ' .
-    \ (g:AgSmartCase ? '--smart-case ' : '') .
-    \ join(map(copy(args), 'shellescape(v:val)'), ' ')
+  try
+    call s:Ag(args, a:bang)
+  finally
+    if a:relative
+      exec 'cd ' . cwd
+    endif
+  endtry
+endfunction " }}}
 
+function! s:Ag(args, bang) " {{{
+  let args = a:args
+  let results = []
   let saveerrorformat = &errorformat
   try
     silent! doautocmd QuickFixCmdPre grep
     if index(args, '-g') != -1
+      let filename = 1
       set errorformat=%-GERR:%.%#,%f,%-G%.%#
     else
+      let filename = 0
       set errorformat=%-GERR:%.%#,%f:%l:%c:%m,%-G%.%#
     endif
+
+    " If there is no tty (which is the case when calling ag via system), ag
+    " will default to searching stdin, so force it to search files via the
+    " --search-files arg: https://github.com/ggreer/the_silver_searcher/issues/57
+    let args = ['--search-files'] + args
+    " when searching for a pattern in files, then ensure column numbers are in
+    " the results
+    if !filename
+      let args = ['--column'] + args
+    endif
+
+    let cmd = 'ag ' .
+      \ join(map(copy(args), 'shellescape(v:val)'), ' ') .
+      \ ' | sort'
 
     if &verbose
       echom "Ag: executing" cmd
     endif
-    cexpr system(cmd)
-    let qftitle = 'ag ' . join(args)
 
+    let bufnum = bufnr()
+    let output = system(cmd)
+    silent cexpr output
+
+    let qftitle = 'ag ' . join(args)
     try
       call setqflist([], 'a', {'title': qftitle})
     catch
-      " don't let attempt to set the quickfix title break anything
+      " don't let attempting to set the quickfix title break anything
     endtry
 
-    if len(getqflist())
+    if v:shell_error || output =~ '^ERR:'
+      " may be a bug in ag, but it is returning an error code on file name searches
+      " (-g <pattern>) when results are found
+      if index(args, '-g') != -1
+        if len(results) && bufname(results[0].bufnr) !~ '^ag: '
+          return
+        endif
+        " our -g errorformat matches every line of ag's error message if there was
+        " a legitimate error, so jump back to the file the user was editing and
+        " clear the quickfix list
+        if bufnr() != bufnum
+          exec "normal! \<c-o>"
+        endif
+        call setqflist([], 'r')
+      endif
+
+      " note: an error code is returned on no results as well.
+      if output != ''
+        call s:Echo(output, 'Error')
+        return
+      endif
+    endif
+
+    let results = getqflist()
+    if len(results) == 0
+      if filename
+        call s:QuickfixRestore()
+      endif
+      call s:Echo('No results found: ' . cmd, 'WarningMsg')
+    else
+      if filename
+        " if this is a file search and there is only 1 result, then open it
+        " and restore any previous quickfix results
+        if len(results) == 1
+          if a:bang != '' && a:bang != 'edit'
+            " allow a command to be supplied for the bang arg to support
+            " ag#search#FindFile
+            let cmd = a:bang == '!' ? 'split' : a:bang
+            silent exec "normal! \<c-o>"
+            exec cmd
+            exec 'buffer' . results[0]['bufnr']
+          endif
+          " restore  the previous quickfix results if any
+          call s:QuickfixRestore()
+
+        " if there are multiple results, then return the user to where they
+        " were and open the quickfix window for the user to choose the file
+        " from
+        else
+          silent exec "normal! \<c-o>"
+          copen
+        endif
+
       " open up the fold on the first result
-      if a:bang == ''
+      elseif a:bang == ''
         normal! zv
         silent! doautocmd WinEnter
 
@@ -148,45 +244,13 @@ function! ag#Ag(args, relative, bang) " {{{
         exec "normal! \<c-o>"
         copen
       endif
+      silent! doautocmd QuickFixCmdPost grep
     endif
-    silent! doautocmd QuickFixCmdPost grep
   catch /E325/
     " vim handles this by prompting the user for how to proceed
   finally
     let &errorformat = saveerrorformat
-    if a:relative
-      exec 'cd ' . cwd
-    endif
   endtry
-
-  if v:shell_error
-    " may be a bug in ag, but it is returning an error code on file name searches
-    " (-g <pattern>) when results are found
-    if index(args, '-g') != -1
-      let results = getqflist()
-      if len(results) && bufname(results[0].bufnr) !~ '^ag: '
-        return
-      endif
-      " our -g errorformat matches every line of ag's error message if there was
-      " a legitimate error, so jump back to the file the user was editing and
-      " clear the quickfix list
-      if a:bang == '' && len(results)
-        exec "normal! \<c-o>"
-      endif
-      call setqflist([], 'r')
-    endif
-
-    " note: an error code is return on no results as well.
-    let error = system(cmd)
-    if error != ''
-      call s:Echo(error, 'Error')
-      return
-    endif
-  endif
-
-  if len(getqflist()) == 0
-    call s:Echo('No results found: ' . cmd, 'WarningMsg')
-  endif
 endfunction " }}}
 
 function! s:ParseArgs(args) " {{{
@@ -267,11 +331,21 @@ function! s:SplitOptionsFromArgs(args) " {{{
   return [options, args]
 endfunction " }}}
 
-function! ag#CompleteRelative(argLead, cmdLine, cursorPos) " {{{
+function! s:QuickfixRestore() " {{{
+  try
+    silent colder
+  catch /E380/
+    " if we are at the bottom of the stack, then clear our results
+    call setqflist([], 'r')
+    call setqflist([], 'a', {'title': ''})
+  endtry
+endfunction " }}}
+
+function! ag#search#CompleteRelative(argLead, cmdLine, cursorPos) " {{{
   return ag#Complete(a:argLead, a:cmdLine, a:cursorPos, 1)
 endfunction " }}}
 
-function! ag#Complete(argLead, cmdLine, cursorPos, ...) " {{{
+function! ag#search#Complete(argLead, cmdLine, cursorPos, ...) " {{{
   let pre = substitute(a:cmdLine[:a:cursorPos], '\w\+\s\+', '', '')
   let args = s:ParseArgs(pre)
 
@@ -318,6 +392,11 @@ function! ag#Complete(argLead, cmdLine, cursorPos, ...) " {{{
     let results = map(results, 'isdirectory(fnamemodify(v:val, ":p")) ? v:val . "/" : v:val')
   endif
   return results
+endfunction " }}}
+
+function! ag#search#FindFile(path, cmd) " {{{
+  " A helper function that other scripts can use to locate a file by path
+  call s:Ag(['-g', a:path], a:cmd)
 endfunction " }}}
 
 let &cpo = s:save_cpo

@@ -7,7 +7,7 @@
 " }}}
 
 " License: {{{
-"   Copyright (c) 2012 - 2014, Eric Van Dewoestine
+"   Copyright (c) 2012 - 2024, Eric Van Dewoestine
 "   All rights reserved.
 "
 "   Redistribution and use of this software in source and binary forms, with
@@ -49,44 +49,38 @@ let s:save_cpo=&cpo
 set cpo&vim
 
 " Global Variables {{{
-let g:AgSmartCase = 0
+if !exists("g:AgSmartCase")
+  let g:AgSmartCase = 0
+endif
+
+" The default action to use when opening files from :AgPrompt
+if !exists("g:AgPromptDefaultAction")
+  let g:AgPromptDefaultAction = 'edit'
+endif
+
+" Sets under what condition will the search be case insensitive, one of:
+" - lower: when the pattern is all lower case
+" - never: never case insensitive
+" - always: aways case insensitive
+if !exists("g:AgPromptCaseInsensitive")
+  let g:AgPromptCaseInsensitive = 'lower'
+endif
+
 " }}}
 
 " Command Declarations {{{
 if exists(":Ag") != 2
-  command -bang -nargs=* -complete=customlist,ag#Complete
-    \ Ag :call ag#Ag(<q-args>, 0, '<bang>')
+  command -bang -nargs=* -complete=customlist,ag#search#Complete
+    \ Ag :call ag#search#Ag(<q-args>, 0, '<bang>')
 endif
 if exists(":AgRelative") != 2
-  command -bang -nargs=* -complete=customlist,ag#CompleteRelative
-    \ AgRelative :call ag#Ag(<q-args>, 1, '<bang>')
+  command -bang -nargs=* -complete=customlist,ag#search#CompleteRelative
+    \ AgRelative :call ag#search#Ag(<q-args>, 1, '<bang>')
+endif
+if exists(":AgPrompt") != 2
+  command -nargs=0 AgPrompt :call ag#prompt#Open()
 endif
 " }}}
-
-" allow ag to be used with eclim's :LocateFile
-if !exists('g:EclimLocateUserScopes')
-  let g:EclimLocateUserScopes = ['ag']
-else
-  call add(g:EclimLocateUserScopes, 'ag')
-endif
-
-function! LocateFile_ag(pattern) " {{{
-  if len(a:pattern) >= 5
-    let command = 'ag --search-files -g "' . a:pattern . '"'
-    let results = split(system(command), "\n")
-
-    if len(results) > 0
-      let tempfile = substitute(tempname(), '\', '/', 'g')
-      call writefile(results, tempfile)
-      try
-        return eclim#common#locate#LocateFileFromFileList(a:pattern, tempfile)
-      finally
-        call delete(tempfile)
-      endtry
-    endif
-  endif
-  return []
-endfunction " }}}
 
 let &cpo = s:save_cpo
 
