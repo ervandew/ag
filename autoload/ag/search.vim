@@ -208,49 +208,51 @@ function! s:Ag(args, bang) " {{{
         call s:QuickfixRestore()
       endif
       call s:Echo('No results found: ' . cmd, 'WarningMsg')
-    else
-      if filename
-        " if this is a file search and there is only 1 result, then open it
-        " and restore any previous quickfix results
-        if len(results) == 1
-          if a:bang != '' && a:bang != 'edit'
-            " allow a command to be supplied for the bang arg to support
-            " ag#search#FindFile
-            let cmd = a:bang == '!' ? 'split' : a:bang
-            silent exec "normal! \<c-o>"
-            exec cmd
-            exec 'buffer' . results[0]['bufnr']
-          endif
-          " restore  the previous quickfix results if any
-          call s:QuickfixRestore()
+      return 0
+    endif
 
-        " if there are multiple results, then return the user to where they
-        " were and open the quickfix window for the user to choose the file
-        " from
-        else
+    if filename
+      " if this is a file search and there is only 1 result, then open it
+      " and restore any previous quickfix results
+      if len(results) == 1
+        if a:bang != '' && a:bang != 'edit'
+          " allow a command to be supplied for the bang arg to support
+          " ag#search#FindFile
+          let cmd = a:bang == '!' ? 'split' : a:bang
           silent exec "normal! \<c-o>"
-          copen
+          exec cmd
+          exec 'buffer' . results[0]['bufnr']
         endif
+        " restore  the previous quickfix results if any
+        call s:QuickfixRestore()
 
-      " open up the fold on the first result
-      elseif a:bang == ''
-        normal! zv
-        silent! doautocmd WinEnter
-
-      " if the user doesn't want to jump to the first result, then navigate back
-      " to where they were (cexpr! just ignores changes to the current file, so
-      " we need to use the jumplist) and open the quickfix window.
+      " if there are multiple results, then return the user to where they
+      " were and open the quickfix window for the user to choose the file
+      " from
       else
-        exec "normal! \<c-o>"
+        silent exec "normal! \<c-o>"
         copen
       endif
-      silent! doautocmd QuickFixCmdPost grep
+
+    " open up the fold on the first result
+    elseif a:bang == ''
+      normal! zv
+      silent! doautocmd WinEnter
+
+    " if the user doesn't want to jump to the first result, then navigate back
+    " to where they were (cexpr! just ignores changes to the current file, so
+    " we need to use the jumplist) and open the quickfix window.
+    else
+      exec "normal! \<c-o>"
+      copen
     endif
+    silent! doautocmd QuickFixCmdPost grep
   catch /E325/
     " vim handles this by prompting the user for how to proceed
   finally
     let &errorformat = saveerrorformat
   endtry
+  return 1
 endfunction " }}}
 
 function! s:ParseArgs(args) " {{{
@@ -396,7 +398,7 @@ endfunction " }}}
 
 function! ag#search#FindFile(path, cmd) " {{{
   " A helper function that other scripts can use to locate a file by path
-  call s:Ag(['-g', a:path], a:cmd)
+  return s:Ag(['-g', a:path], a:cmd)
 endfunction " }}}
 
 let &cpo = s:save_cpo
