@@ -297,11 +297,14 @@ endfunction " }}}
 
 function! s:Echo(message, highlight) " {{{
   exec "echohl " . a:highlight
-  redraw
-  for line in split(a:message, '\n')
-    echom line
-  endfor
-  echohl None
+  try
+    redraw
+    for line in split(a:message, '\n')
+      echom line
+    endfor
+  finally
+    echohl None
+  endtry
 endfunction " }}}
 
 function! s:OptionHasArg(option) " {{{
