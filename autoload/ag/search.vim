@@ -150,10 +150,6 @@ function! s:Ag(args, bang) " {{{
       set errorformat=%-GERR:%.%#,%f:%l:%c:%m,%-G%.%#
     endif
 
-    " If there is no tty (which is the case when calling ag via system), ag
-    " will default to searching stdin, so force it to search files via the
-    " --search-files arg: https://github.com/ggreer/the_silver_searcher/issues/57
-    let args = ['--search-files'] + args
     " when searching for a pattern in files, then ensure column numbers are in
     " the results
     if !filename

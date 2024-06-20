@@ -327,7 +327,7 @@ endfunction " }}}
 function! s:Ag(pattern) " {{{
   let results = []
   if len(a:pattern) >= 5
-    let command = 'ag --search-files '
+    let command = 'ag '
     if g:AgPromptCaseInsensitive == 'always' ||
      \ (a:pattern !~# '[A-Z]' && g:AgPromptCaseInsensitive != 'never')
       let command .= '-i '
