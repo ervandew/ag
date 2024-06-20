@@ -160,9 +160,7 @@ function! s:Ag(args, bang) " {{{
       let args = ['--column'] + args
     endif
 
-    let cmd = 'ag ' .
-      \ join(map(copy(args), 'shellescape(v:val)'), ' ') .
-      \ ' | sort'
+    let cmd = 'ag ' .join(map(copy(args), 'shellescape(v:val)'), ' ')
 
     if &verbose
       echom "Ag: executing" cmd
@@ -170,7 +168,7 @@ function! s:Ag(args, bang) " {{{
 
     let bufnum = bufnr()
     let output = system(cmd)
-    silent cexpr output
+    cexpr output
 
     let qftitle = 'ag ' . join(args)
     try
